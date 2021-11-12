@@ -62,7 +62,7 @@ $pdf->Cell(150);
 $pdf->Cell(30,10,'DATA SISWA',0,0,'C');
 $pdf->Ln();
 $pdf->Cell(150);
-$pdf->Cell(30,10,'Data Nilai Siswa (SINIWA)',0,0,'C');
+$pdf->Cell(30,10,'SISTEM INFORMASI NILAI SISWA (SINIWA)',0,0,'C');
 $pdf->Ln();
 
 }
@@ -90,7 +90,7 @@ $pdf->Cell(25,8,'Rata - rata',1,0,'C',1);
 $pdf->SetX(190);
 $pdf->Cell(100,8,'Mata Pelajaran',1,0,'C',1);
 $pdf->SetX(290);
-$pdf->Cell(20,8,'Keterangan',1,0,'C',1);
+$pdf->Cell(30,8,'Keterangan',1,0,'C',1);
 $pdf->Ln();
 
 //Table position, under Fields Name
@@ -129,7 +129,7 @@ $pdf->MultiCell(100,6,$column_namaPelajaran,1,'C');
 
 $pdf->SetY($Y_Table_Position);
 $pdf->SetX(290);
-$pdf->MultiCell(20,6,$column_keterangan,1,'C');
+$pdf->MultiCell(30,6,$column_keterangan,1,'C');
 $pdf->OutputSiswa();
 }
 ?>
