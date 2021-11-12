@@ -980,6 +980,68 @@ function SetXY($x, $y)
 	$this->SetX($x);
 }
 
+
+
+function OutputSiswa($name='', $dest='')
+{
+
+	include "../conn.php";
+	$query = mysqli_query($koneksi, "SELECT nama_siswa FROM siswa");
+	// Output PDF to some destination
+	if($this->state<3)
+		$this->Close();
+	$dest = strtoupper($dest);
+	if($dest=='')
+	{
+		if($name=='')
+		{
+			$name = 'nilaiSiswa_'.$_SESSION['username'].'.pdf';
+			$dest = 'I';
+		}
+		else
+			$dest = 'F';
+	}
+	switch($dest)
+	{
+		case 'I':
+			// Send to standard output
+			$this->_checkoutput();
+			if(PHP_SAPI!='cli')
+			{
+				// We send to a browser
+				header('Content-Type: application/pdf');
+				header('Content-Disposition: inline; filename="'.$name.'"');
+				header('Cache-Control: private, max-age=0, must-revalidate');
+				header('Pragma: public');
+			}
+			echo $this->buffer;
+			break;
+		case 'D':
+			// Download file
+			$this->_checkoutput();
+			header('Content-Type: application/x-download');
+			header('Content-Disposition: attachment; filename="'.$name.'"');
+			header('Cache-Control: private, max-age=0, must-revalidate');
+			header('Pragma: public');
+			echo $this->buffer;
+			break;
+		case 'F':
+			// Save to local file
+			$f = fopen($name,'wb');
+			if(!$f)
+				$this->Error('Unable to create output file: '.$name);
+			fwrite($f,$this->buffer,strlen($this->buffer));
+			fclose($f);
+			break;
+		case 'S':
+			// Return as a string
+			return $this->buffer;
+		default:
+			$this->Error('Incorrect output destination: '.$dest);
+	}
+	return '';
+}
+
 function Output($name='', $dest='')
 {
 	// Output PDF to some destination
@@ -990,7 +1052,7 @@ function Output($name='', $dest='')
 	{
 		if($name=='')
 		{
-			$name = 'doc.pdf';
+			$name = 'Daftar Nilai_'.$_SESSION['username'].'.pdf';
 			$dest = 'I';
 		}
 		else

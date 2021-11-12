@@ -161,7 +161,7 @@ $_SESSION['start_time'] = time();
                         <th><center>Mata Pelajaran</center></th>
                         <th><center>Tugas 1 </center></th>
                         <th><center>Tugas 2 </center></th>
-                        <th><center>Absen</center></th>
+                        <th><center>Tugas 3</center></th>
                         <th><center>UTS </center></th>
                         <th><center>UAS</center></th>
                         <th><center>Total Nilai</center></th>

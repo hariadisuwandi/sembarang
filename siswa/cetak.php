@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (empty($_SESSION['username'])){
-	header('location:../login.html');	
+	header('location:../index.php');	
 } else {
 	include "../conn.php";
 require('../fpdf17/fpdf.php');
@@ -10,252 +10,126 @@ require('../conn.php');
 
 //Select the Products you want to show in your PDF file
 //$result=mysql_query("SELECT * FROM daily_bbri where date like '%$periode%' ");
-$siswa = $_SESSION['kode'];
-                    
-$result=mysqli_query($koneksi, "SELECT siswa.kode_siswa, siswa.nis, siswa.nama_siswa,
-                                        nilai.semester, pelajaran.nama_pelajaran, pelajaran.kkm,
-                                        nilai.nilai_tugas1, nilai.nilai_tugas2, nilai.nilai_tugas3,
-                                        nilai.nilai_uts, nilai.nilai_uas, nilai.keterangan,
-                                        kelas_siswa.jurusan, kelas.tahun_ajar, kelas.kelas
-                                        FROM siswa, nilai, pelajaran, kelas, kelas_siswa
-                                        WHERE siswa.kode_siswa=nilai.kode_siswa AND
-                                        nilai.kode_pelajaran=pelajaran.kode_pelajaran AND 
-                                        kelas.kode_kelas=kelas_siswa.kode_kelas AND
-                                        kelas_siswa.kode_siswa=siswa.kode_siswa AND
-                                        siswa.kode_siswa='$siswa'");
-            
+
+$result = mysqli_query($koneksi, "SELECT * FROM nilai, pelajaran, siswa WHERE nilai.kode_pelajaran = pelajaran.kode_pelajaran AND nilai.kode_siswa = siswa.kode_siswa");
+
 //Initialize the 3 columns and the total
-$column_date = "";
-$column_time = "";
-$column_standmeter = "";
-//$column_factor = "";
-//$column_total = "";
-$column_nilai = "";
-$column_rata = "";
+$column_namaPelajaran = "";
+$column_nilaiTugas1 = "";
+$column_nilaiTugas2 = "";
+$column_nilaiTugas3 = "";
+$column_nilaiUTS = "";
+$column_nilaiUAS = "";
+$column_totalNilai = "";
+$column_nilaiRatarata = "";
+$column_keterangan = "";
+
 
 //For each row, add the field to the corresponding column
-$no=0;
 while($row = mysqli_fetch_array($result))
-{ $no++;
-	$kode_siswa = $row["kode_siswa"];
-    $nis = $row["nis"];
-    $nama = $row["nama_siswa"];
-    $jurusan = $row["jurusan"];
-    $semester = $row["semester"];
-	$date = $no;
-    $time = $row["nama_pelajaran"];
-    $standmeter = $row["kkm"];
-    //$factor = $row["nilai_uts"];
-    //$total = $row["nilai_uas"];
-    $kelas = $row["kelas"];
-    $tahun = $row["tahun_ajar"];
-    $ket = $row["keterangan"];
+{
+	$namaPelajaran = $row["nama_pelajaran"];
+    $nilaiTugas1 = $row["nilai_tugas1"];
+    $nilaiTugas2 = $row["nilai_tugas2"];
+    $nilaiTugas3 = $row["nilai_tugas3"];
+    $nilaiUTS = $row["nilai_uts"];
+	$nilaiUAS = $row["nilai_uas"];
+
     $total = $row['nilai_tugas1'] + $row['nilai_tugas2'] + $row['nilai_tugas3'] + $row['nilai_uts'] + $row['nilai_uas'];
-    $nilai = $total / 5;
-    //$nilai = $row["nilai_uas"];
-    $rata = $row["keterangan"];	
+    $rata = $total / 5; 
+    $totalNilai = $total;
+    $nilaiRatarata = $rata;
+    $keterangan = $row["keterangan"];
 
-	$column_date = $column_date.$date."\n";
-	$column_time = $column_time.$time."\n";
-	$column_standmeter = $column_standmeter.$standmeter."\n";
-	//$column_factor = $column_factor.$factor."\n";
-	//$column_total = $column_total.$total."\n";
-    $column_nilai = $column_nilai.$nilai."\n";
-    $column_rata = $column_rata.$rata."\n";		
-
-            
-//mysql_close();
+    $column_namaPelajaran = $column_namaPelajaran.$namaPelajaran."\n";
+    $column_nilaiTugas1 = $column_nilaiTugas1.$nilaiTugas1."\n";
+    $column_nilaiTugas2 = $column_nilaiTugas2.$nilaiTugas2."\n";
+    $column_nilaiTugas3 = $column_nilaiTugas3.$nilaiTugas3."\n";
+    $column_nilaiUTS = $column_nilaiUTS.$nilaiUTS."\n";
+    $column_nilaiUAS = $column_nilaiUAS.$nilaiUAS."\n";
+    $column_totalNilai = $column_totalNilai.$totalNilai."\n";
+    $column_nilaiRatarata = $column_nilaiRatarata.$nilaiRatarata."\n";
+    $column_keterangan = $column_keterangan.$keterangan."\n";
 
 //Create a new PDF file
-$pdf = new FPDF('P','mm',array(210,594)); //L For Landscape / P For Portrait
+$pdf = new FPDF('L','mm',array(350,210)); //L For Landscape / P For Portrait
 $pdf->AddPage();
 
 $pdf->Image('../foto/logo.png',10,10,-175);
 //$pdf->Image('../images/BBRI.png',190,10,-200);
 $pdf->SetFont('Arial','B',13);
-$pdf->Cell(80);
-$pdf->Cell(30,10,'SISTEM INFORMASI NILAI SISWA',0,0,'C');
+$pdf->Cell(150);
+$pdf->Cell(30,10,'DATA SISWA',0,0,'C');
 $pdf->Ln();
-$pdf->Cell(80);
-$pdf->Cell(30,10,'RAPORT NILAI SISWA',0,0,'C');
-$pdf->Ln();
-
-//Fields Name position
-$Y_Fields_Name_position = 40;
-$pdf->SetFillColor(255,255,255);
-//First create each Field Name
-//Bold Font for Field Name
-$pdf->SetFont('Arial','B',10);
-$pdf->SetY($Y_Fields_Name_position);
-$pdf->SetX(5);
-$pdf->Cell(40,8,'Kode Siswa : '.$kode_siswa,0,0,'L',1);
-$pdf->SetX(45);
-$pdf->Cell(40,8,'',0,0,'L',1);
-$pdf->SetX(85);
-$pdf->Cell(50,8,'',0,0,'C',1);
-$pdf->SetX(135);
-$pdf->Cell(25,8,'',0,0,'C',1);
-$pdf->SetX(160);
-$pdf->Cell(45,8,'Tahun Ajaran : '.$tahun,0,0,'R',1);
+$pdf->Cell(150);
+$pdf->Cell(30,10,'Data Nilai Siswa (SINIWA)',0,0,'C');
 $pdf->Ln();
 
-//Field Name Position
-$Y_Fields_Name_position = 48;
-$pdf->SetFillColor(255,255,255);
-//First create each Field Name
-//Bold Font for Field Name
-$pdf->SetFont('Arial','B',10);
-$pdf->SetY($Y_Fields_Name_position);
-$pdf->SetX(5);
-$pdf->Cell(40,8,'NIS : '.$nis,0,0,'L',1);
-$pdf->SetX(45);
-$pdf->Cell(40,8,'',0,0,'L',1);
-$pdf->SetX(85);
-$pdf->Cell(50,8,'',0,0,'C',1);
-$pdf->SetX(135);
-$pdf->Cell(25,8,'',0,0,'C',1);
-$pdf->SetX(160);
-$pdf->Cell(45,8,'Kelas : '.$kelas,0,0,'R',1);
-$pdf->Ln();
-
-//Field Name Position
-$Y_Fields_Name_position = 56;
-$pdf->SetFillColor(255,255,255);
-//Bold Font for Field Name
-$pdf->SetFont('Arial','B',10);
-$pdf->SetY($Y_Fields_Name_position);
-$pdf->SetX(5);
-$pdf->Cell(40,8,'Nama Siswa : '.$nama,0,0,'L',1);
-$pdf->SetX(100);
-$pdf->Cell(40,8,'',0,0,'L',1);
-$pdf->SetX(85);
-$pdf->Cell(50,8,'',0,0,'C',1);
-$pdf->SetX(135);
-$pdf->Cell(25,8,'',0,0,'C',1);
-$pdf->SetX(160);
-$pdf->Cell(45,8,'Semester : '.$semester,0,0,'R',1);
-$pdf->Ln();
-
-$Y_Fields_Name_position = 64;
-$pdf->SetFillColor(255,255,255);
-//First create each Field Name
-//Bold Font for Field Name
-$pdf->SetFont('Arial','B',10);
-$pdf->SetY($Y_Fields_Name_position);
-$pdf->SetX(5);
-$pdf->Cell(60,8,'Alamat Sekolah : Jl. Mayor Dasuki No 3B Ds Penganjang Kab. Indramayu',0,0,'L',1);
-//$pdf->SetX(160);
-//$pdf->Cell(40,8,'',0,0,'L',1);
-//$pdf->SetX(85);
-//$pdf->Cell(50,8,'',0,0,'C',1);
-//$pdf->SetX(135);
-//$pdf->Cell(25,8,'',0,0,'C',1);
-//$pdf->SetX(160);
-//$pdf->Cell(45,8,'Semester : '.$semester,0,0,'R',1);
-$pdf->Ln();
 }
 //Fields Name position
-$Y_Fields_Name_position = 71;
+$Y_Fields_Name_position = 30;
 
 //First create each Field Name
 //Gray color filling each Field Name box
 $pdf->SetFillColor(110,180,230);
 //Bold Font for Field Name
-$pdf->SetFont('Arial','B',10);
+$pdf->SetFont('Arial','B',12);
 $pdf->SetY($Y_Fields_Name_position);
-$pdf->SetX(5);
-$pdf->Cell(10,8,'No',1,0,'C',1);
-$pdf->SetX(15);
-$pdf->Cell(50,8,'Mata Pelajaran',1,0,'C',1);
-$pdf->SetX(65);
-$pdf->Cell(60,8,'Kriteria Kelulusan Minimal (KKM)',1,0,'C',1);
-$pdf->SetX(125);
-$pdf->Cell(40,8,'Nilai Angka',1,0,'C',1);
+$pdf->SetX(25);
+$pdf->Cell(25,8,'Tugas 1',1,0,'C',1);
+$pdf->SetX(50);
+$pdf->Cell(40,8,'Tugas 2',1,0,'C',1);
+$pdf->SetX(90);
+$pdf->Cell(25,8,'Tugas 3',1,0,'C',1);
+$pdf->SetX(115);
+$pdf->Cell(25,8,'UTS',1,0,'C',1);
+$pdf->SetX(140);
+$pdf->Cell(25,8,'UAS',1,0,'C',1);
 $pdf->SetX(165);
-$pdf->Cell(40,8,'Keterangan',1,0,'C',1);
+$pdf->Cell(25,8,'Rata - rata',1,0,'C',1);
+$pdf->SetX(190);
+$pdf->Cell(100,8,'Mata Pelajaran',1,0,'C',1);
+$pdf->SetX(290);
+$pdf->Cell(20,8,'Keterangan',1,0,'C',1);
 $pdf->Ln();
 
 //Table position, under Fields Name
-$Y_Table_Position = 79;
+$Y_Table_Position = 38;
 
 //Now show the columns
-$pdf->SetFont('Arial','',10);
+$pdf->SetFont('arial','',12);
 
 $pdf->SetY($Y_Table_Position);
-$pdf->SetX(5);
-$pdf->MultiCell(10,8,$column_date,1,'C');
+$pdf->SetX(25);
+$pdf->MultiCell(25,6,$column_nilaiTugas1,1,'C');
 
 $pdf->SetY($Y_Table_Position);
-$pdf->SetX(15);
-$pdf->MultiCell(50,8,$column_time,1,'L');
+$pdf->SetX(50);
+$pdf->MultiCell(40,6,$column_nilaiTugas2,1,'C');
 
 $pdf->SetY($Y_Table_Position);
-$pdf->SetX(65);
-$pdf->MultiCell(60,8,$column_standmeter,1,'C');
+$pdf->SetX(90);
+$pdf->MultiCell(25,6,$column_nilaiTugas3,1,'C');
 
 $pdf->SetY($Y_Table_Position);
-$pdf->SetX(125);
-$pdf->MultiCell(40,8,$column_nilai,1,'C');
+$pdf->SetX(115);
+$pdf->MultiCell(25,6,$column_nilaiUTS,1,'C');
+
+$pdf->SetY($Y_Table_Position);
+$pdf->SetX(140);
+$pdf->MultiCell(25,6,$column_nilaiUAS,1,'C');
 
 $pdf->SetY($Y_Table_Position);
 $pdf->SetX(165);
-$pdf->MultiCell(40,8,$column_rata,1,'L');
+$pdf->MultiCell(25,6,$column_nilaiRatarata,1,'C');
 
+$pdf->SetY($Y_Table_Position);
+$pdf->SetX(190);
+$pdf->MultiCell(100,6,$column_namaPelajaran,1,'C');
 
-$Y_Fields_Name_position = 220;
-$pdf->SetFillColor(255,255,255);
-//First create each Field Name
-//Bold Font for Field Name
-$pdf->SetFont('Arial','B',10);
-$pdf->SetY($Y_Fields_Name_position);
-$pdf->SetX(5);
-$pdf->Cell(40,8,'Orang Tua / Wali,',0,0,'L',1);
-$pdf->SetX(160);
-$pdf->Cell(40,8,'',0,0,'L',1);
-$pdf->SetX(85);
-$pdf->Cell(50,8,'',0,0,'C',1);
-$pdf->SetX(135);
-$pdf->Cell(25,8,'',0,0,'C',1);
-$pdf->SetX(160);
-$pdf->Cell(45,8,'Guru Kelas, ',0,0,'R',1);
-$pdf->Ln();
-
-$Y_Fields_Name_position = 245;
-$pdf->SetFillColor(255,255,255);
-//First create each Field Name
-//Bold Font for Field Name
-$pdf->SetFont('Arial','B',10);
-$pdf->SetY($Y_Fields_Name_position);
-$pdf->SetX(5);
-$pdf->Cell(40,8,'(...........................................)',0,0,'L',1);
-$pdf->SetX(160);
-$pdf->Cell(40,8,'',0,0,'L',1);
-$pdf->SetX(85);
-$pdf->Cell(50,8,'',0,0,'C',1);
-$pdf->SetX(135);
-$pdf->Cell(25,8,'',0,0,'C',1);
-$pdf->SetX(160);
-$pdf->Cell(45,8,'(...........................................)',0,0,'R',1);
-$pdf->Ln();
-
-$Y_Fields_Name_position = 255;
-$pdf->SetFillColor(255,255,255);
-//First create each Field Name
-//Bold Font for Field Name
-$pdf->SetFont('Arial','B',10);
-$pdf->SetY($Y_Fields_Name_position);
-$pdf->SetX(5);
-$pdf->Cell(40,8,'',0,0,'L',1);
-$pdf->SetX(160);
-$pdf->Cell(40,8,'',0,0,'L',1);
-$pdf->SetX(85);
-$pdf->Cell(50,8,'',0,0,'C',1);
-$pdf->SetX(135);
-$pdf->Cell(25,8,'',0,0,'C',1);
-$pdf->SetX(160);
-$pdf->Cell(45,8,'NIP.........................................',0,0,'R',1);
-$pdf->Ln();
-
-$pdf->Output();
+$pdf->SetY($Y_Table_Position);
+$pdf->SetX(290);
+$pdf->MultiCell(20,6,$column_keterangan,1,'C');
+$pdf->OutputSiswa();
 }
 ?>
